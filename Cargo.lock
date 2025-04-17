@@ -9456,6 +9456,7 @@ dependencies = [
  "rsa",
  "scale-info",
  "sha2 0.10.8",
+ "sp-std",
  "spki",
 ]
 
