@@ -1,5 +1,5 @@
 [package]
-name = "pallet-parachain-template"
+name = "pallet-rsa-verification-parachain"
 description = "FRAME pallet template for defining custom runtime logic."
 version = "0.1.0"
 license = "Unlicense"
@@ -17,8 +17,20 @@ codec = { features = ["derive"], workspace = true }
 scale-info = { features = ["derive"], workspace = true }
 frame = { workspace = true, features = ["experimental", "runtime"], default-features = false }
 
+# RSA cryptography
+rsa = { workspace = true, default-features = false, features = ["sha2"] }
+sha2 = { workspace = true, default-features = false }
+spki = { workspace = true, default-features = false }
+
 [features]
 default = ["std"]
 runtime-benchmarks = ["frame/runtime-benchmarks"]
-std = ["codec/std", "frame/std", "scale-info/std"]
+std = [
+    "codec/std",
+    "frame/std",
+    "scale-info/std",
+    "rsa/std",
+    "sha2/std",
+    "spki/std",
+]
 try-runtime = ["frame/try-runtime"]

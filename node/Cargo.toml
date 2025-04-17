@@ -1,5 +1,5 @@
 [package]
-name = "parachain-template-node"
+name = "rsa-verification-parachain-node"
 description = "A parachain node template built with Substrate and Cumulus, part of Polkadot Sdk."
 version = "0.1.0"
 license = "Unlicense"
@@ -21,7 +21,7 @@ serde_json = { workspace = true, default-features = true }
 docify = { workspace = true }
 color-print = { workspace = true }
 polkadot-sdk = { workspace = true, features = ["node"] }
-parachain-template-runtime.workspace = true
+rsa-verification-parachain-runtime.workspace = true
 sc-tracing.workspace = true
 sc-tracing.default-features = true
 prometheus-endpoint.workspace = true
@@ -34,14 +34,14 @@ polkadot-sdk = { workspace = true, features = ["substrate-build-script-utils"] }
 default = ["std"]
 std = [
 	"log/std",
-	"parachain-template-runtime/std",
+	"rsa-verification-parachain-runtime/std",
 	"polkadot-sdk/std",
 ]
 runtime-benchmarks = [
-	"parachain-template-runtime/runtime-benchmarks",
+	"rsa-verification-parachain-runtime/runtime-benchmarks",
 	"polkadot-sdk/runtime-benchmarks",
 ]
 try-runtime = [
-	"parachain-template-runtime/try-runtime",
+	"rsa-verification-parachain-runtime/try-runtime",
 	"polkadot-sdk/try-runtime",
 ]

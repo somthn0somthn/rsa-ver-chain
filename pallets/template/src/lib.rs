@@ -47,6 +47,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 pub use pallet::*;
 
 #[cfg(test)]
@@ -59,6 +61,19 @@ pub mod weights;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+
+use alloc::vec::Vec;
+
+// Import RSA libraries to verify they're available
+#[allow(unused_imports)]
+use rsa::{
+    pkcs1v15::VerifyingKey,
+    RsaPublicKey,
+};
+#[allow(unused_imports)]
+use sha2::Sha256;
+#[allow(unused_imports)]
+use spki::DecodePublicKey;
 
 // <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/frame_runtime/index.html>
 // <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html>
