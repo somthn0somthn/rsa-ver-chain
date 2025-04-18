@@ -22,7 +22,7 @@ fn validate_string_works_with_valid_input() {
         ));
 
         // Assert
-        System::<Test>::assert_has_event(RuntimeEvent::Template(crate::Event::ValidString {
+        System::<Test>::assert_last_event(RuntimeEvent::Template(crate::Event::ValidString {
             who: account,
         }));
     });
@@ -45,7 +45,7 @@ fn validate_string_works_with_invalid_input() {
         ));
 
         // Assert
-        System::<Test>::assert_has_event(RuntimeEvent::Template(crate::Event::InvalidString {
+        System::<Test>::assert_last_event(RuntimeEvent::Template(crate::Event::InvalidString {
             who: account,
         }));
     });
