@@ -23,18 +23,10 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn cause_error() {
-        Something::<T>::put(CompositeStruct {
-            block_number: 100u32.into(),
-        });
+    fn validate_string() {
         let caller: T::AccountId = whitelisted_caller();
         #[extrinsic_call]
-        cause_error(RawOrigin::Signed(caller));
-
-        assert_eq!(
-            Something::<T>::get().map(|v| v.block_number),
-            Some(101u32.into())
-        );
+        validate_string(RawOrigin::Signed(caller), b"hello".to_vec());
     }
 
     impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);

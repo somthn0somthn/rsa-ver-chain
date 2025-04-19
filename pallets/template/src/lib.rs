@@ -1,55 +1,17 @@
-//! # Template Pallet
-//!
-//! A pallet with minimal functionality to help developers understand the essential components of
-//! writing a FRAME pallet. It is typically used in beginner tutorials or in Polkadot SDK template
-//! as a starting point for creating a new pallet and **not meant to be used in production**.
-//!
-//! ## Overview
-//!
-//! This template pallet contains basic examples of:
-//! - declaring a storage item that stores a single block-number
-//! - declaring and using events
-//! - declaring and using errors
-//! - a dispatchable function that allows a user to set a new value to storage and emits an event
-//!   upon success
-//! - another dispatchable function that causes a custom error to be thrown
-//!
-//! Each pallet section is annotated with an attribute using the `#[pallet::...]` procedural macro.
-//! This macro generates the necessary code for a pallet to be aggregated into a FRAME runtime.
-//!
-//! To get started with pallet development, consider using this tutorial:
-//!
-//! <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html>
-//!
-//! And reading the main documentation of the `frame` crate:
-//!
-//! <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/frame_runtime/index.html>
-//!
-//! And looking at the frame [`kitchen-sink`](https://paritytech.github.io/polkadot-sdk/master/pallet_example_kitchensink/index.html)
-//! pallet, a showcase of all pallet macros.
-//!
-//! ### Pallet Sections
-//!
-//! The pallet sections in this template are:
-//!
-//! - A **configuration trait** that defines the types and parameters which the pallet depends on
-//!   (denoted by the `#[pallet::config]` attribute). See: [`Config`].
-//! - A **means to store pallet-specific data** (denoted by the `#[pallet::storage]` attribute).
-//!   See: [`storage_types`].
-//! - A **declaration of the events** this pallet emits (denoted by the `#[pallet::event]`
-//!   attribute). See: [`Event`].
-//! - A **declaration of the errors** that this pallet can throw (denoted by the `#[pallet::error]`
-//!   attribute). See: [`Error`].
-//! - A **set of dispatchable functions** that define the pallet's functionality (denoted by the
-//!   `#[pallet::call]` attribute). See: [`dispatchables`].
-//!
-//! Run `cargo doc --package pallet-template --open` to view this pallet's documentation.
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use pallet::*;
 
+// Required for no_std environments
+extern crate alloc;
+
+// Import RSA libraries
+use rsa::pkcs1v15::Signature;
+use rsa::signature::Verifier;
+use rsa::{pkcs1v15::VerifyingKey, RsaPublicKey};
+use sha2::Sha256;
 use sp_std::prelude::*;
+use spki::DecodePublicKey;
 
 #[cfg(test)]
 mod mock;
@@ -62,14 +24,6 @@ pub mod weights;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
-// Import RSA libraries to verify they're available
-#[allow(unused_imports)]
-use rsa::{pkcs1v15::VerifyingKey, RsaPublicKey};
-#[allow(unused_imports)]
-use sha2::Sha256;
-#[allow(unused_imports)]
-use spki::DecodePublicKey;
-
 // <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/frame_runtime/index.html>
 // <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html>
 //
@@ -80,6 +34,13 @@ use spki::DecodePublicKey;
 pub mod pallet {
     use crate::weights::WeightInfo;
     use frame::prelude::*;
+    // Import the RSA functionality into the pallet module
+    use rsa::pkcs1v15::Signature;
+    use rsa::signature::Verifier;
+    use rsa::{pkcs1v15::VerifyingKey, RsaPublicKey};
+    use sha2::Sha256;
+    use sp_std::prelude::*;
+    use spki::DecodePublicKey;
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
@@ -126,6 +87,15 @@ pub mod pallet {
         InvalidString {
             who: T::AccountId,
         },
+        SignatureVerified {
+            who: T::AccountId,
+        },
+        ValidSignedString {
+            who: T::AccountId,
+        },
+        InvalidSignedString {
+            who: T::AccountId,
+        },
     }
 
     /// Errors inform users that something went wrong.
@@ -136,41 +106,19 @@ pub mod pallet {
         NoneValue,
         /// Errors should have helpful documentation associated with them.
         StorageOverflow,
+        /// Invalid RSA public key format
+        InvalidPublicKey,
+        /// Invalid signature format
+        InvalidSignature,
+        /// Signature verification failed
+        SignatureVerificationFailed,
     }
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
-    /// Dispatchable functions allows users to interact with the pallet and invoke state changes.
-    /// These functions materialize as "extrinsics", which are often compared to transactions.
-    /// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
-    /// <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#dispatchables>
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// An example dispatchable that takes a singles value as a parameter, writes the value to
-        /// storage and emits an event. This function must be dispatched by a signed extrinsic.
-        #[pallet::call_index(0)]
-        #[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
-        pub fn do_something(origin: OriginFor<T>, bn: u32) -> DispatchResultWithPostInfo {
-            // Check that the extrinsic was signed and get the signer.
-            // This function will return an error if the extrinsic is not signed.
-            // <https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_origin/index.html>
-            let who = ensure_signed(origin)?;
-
-            // Convert the u32 into a block number. This is possible because the set of trait bounds
-            // defined in [`frame_system::Config::BlockNumber`].
-            let block_number: BlockNumberFor<T> = bn.into();
-
-            // Update storage.
-            <Something<T>>::put(CompositeStruct { block_number });
-
-            // Emit an event.
-            Self::deposit_event(Event::SomethingStored { block_number, who });
-
-            // Return a successful [`DispatchResultWithPostInfo`] or [`DispatchResult`].
-            Ok(().into())
-        }
-
         /// Validates if the input string equals "hello"
         #[pallet::call_index(1)] // Use the next available index
         #[pallet::weight(T::WeightInfo::validate_string())]
@@ -193,32 +141,36 @@ pub mod pallet {
             Ok(().into())
         }
 
-        /// An example dispatchable that may throw a custom error.
-        #[pallet::call_index(2)]
-        #[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().reads_writes(1,1))]
-        pub fn cause_error(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-            let _who = ensure_signed(origin)?;
+        #[pallet::call_index(2)] // Use the next available index
+        #[pallet::weight(T::WeightInfo::validate_string())]
+        pub fn verify_rsa_signature(
+            origin: OriginFor<T>,
+            public_key: Vec<u8>,
+            message: Vec<u8>,
+            signature: Vec<u8>,
+        ) -> DispatchResult {
+            let who = ensure_signed(origin)?;
 
-            // Read a value from storage.
-            match <Something<T>>::get() {
-                // Return an error if the value has not been set.
-                None => Err(Error::<T>::NoneValue)?,
-                Some(mut old) => {
-                    // Increment the value read from storage; will error in the event of overflow.
-                    old.block_number = old
-                        .block_number
-                        .checked_add(&One::one())
-                        // ^^ equivalent is to:
-                        // .checked_add(&1u32.into())
-                        // both of which build a `One` instance for the type `BlockNumber`.
-                        .ok_or(Error::<T>::StorageOverflow)?;
-                    // Update the value in storage with the incremented result.
-                    <Something<T>>::put(old);
-                    // Explore how you can rewrite this using
-                    // [`frame_support::storage::StorageValue::mutate`].
-                    Ok(().into())
-                }
-            }
+            // Parse the public key
+            let public_key = RsaPublicKey::from_public_key_der(&public_key)
+                .map_err(|_| Error::<T>::InvalidPublicKey)?;
+
+            // Create the verifying key
+            let verifying_key = VerifyingKey::<Sha256>::new(public_key);
+
+            // Convert to signature type
+            let signature = Signature::try_from(signature.as_slice())
+                .map_err(|_| Error::<T>::InvalidSignature)?;
+
+            // Verify the signature
+            verifying_key
+                .verify(&message, &signature)
+                .map_err(|_| Error::<T>::SignatureVerificationFailed)?;
+
+            // Emit success event
+            Self::deposit_event(Event::SignatureVerified { who });
+
+            Ok(())
         }
     }
 }
