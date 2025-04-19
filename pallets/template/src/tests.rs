@@ -1,11 +1,16 @@
 #![cfg(test)]
 
 use crate::mock::*;
-use crate::Pallet as Template;
+use crate::{Error, Pallet as Template};
+use base64::prelude::*;
 use frame::testing_prelude::*;
 use frame_system::Pallet as System;
+use rand::rngs::ThreadRng;
+use rsa::pkcs8::DecodePrivateKey;
+use rsa::signature::SignatureEncoding;
+use rsa::{pkcs1v15::SigningKey, signature::RandomizedSigner};
 use rsa::{RsaPrivateKey, RsaPublicKey};
-//use spki::{DecodePrivateKey, DecodePublicKey};
+use sha2::Sha256;
 
 const TEST_PRIVATE_KEY_BASE64: &str =
     "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC8o+pwitCfTxre
@@ -87,5 +92,92 @@ fn validate_string_works_with_invalid_input() {
         System::<Test>::assert_last_event(RuntimeEvent::Template(crate::Event::InvalidString {
             who: account,
         }));
+    });
+}
+
+#[test]
+fn verify_rsa_signature_works() {
+    new_test_ext().execute_with(|| {
+        // Setup system for testing
+        System::<Test>::set_block_number(1);
+
+        // Arrange
+        let account = 1;
+        let message = b"hello world".to_vec();
+
+        // Decode the base64 keys
+        let private_key_der = BASE64_STANDARD
+            .decode(TEST_PRIVATE_KEY_BASE64.replace('\n', ""))
+            .unwrap();
+        let public_key_der = BASE64_STANDARD
+            .decode(TEST_PUBLIC_KEY_BASE64.replace('\n', ""))
+            .unwrap();
+
+        // Parse the private key for signing
+        let private_key = RsaPrivateKey::from_pkcs8_der(&private_key_der).unwrap();
+
+        // Create a signing key and sign the message
+        let signing_key = SigningKey::<Sha256>::new(private_key);
+        let mut rng = rand::thread_rng();
+        let signature = signing_key.sign_with_rng(&mut rng, &message);
+
+        // Convert the signature to bytes
+        let signature_bytes = signature.to_bytes().to_vec();
+
+        // Act - Call the verify_rsa_signature function
+        assert_ok!(Template::<Test>::verify_rsa_signature(
+            RuntimeOrigin::signed(account),
+            public_key_der,
+            message,
+            signature_bytes
+        ));
+
+        // Assert - Check that the event was emitted
+        System::<Test>::assert_last_event(RuntimeEvent::Template(
+            crate::Event::SignatureVerified { who: account },
+        ));
+    });
+}
+
+#[test]
+fn verify_rsa_signature_fails_with_wrong_message() {
+    new_test_ext().execute_with(|| {
+        // Setup system for testing
+        System::<Test>::set_block_number(1);
+
+        // Arrange
+        let account = 1;
+        let original_message = b"hello world".to_vec();
+        let tampered_message = b"hello world!".to_vec(); // Different message
+
+        // Decode the base64 keys
+        let private_key_der = BASE64_STANDARD
+            .decode(TEST_PRIVATE_KEY_BASE64.replace('\n', ""))
+            .unwrap();
+        let public_key_der = BASE64_STANDARD
+            .decode(TEST_PUBLIC_KEY_BASE64.replace('\n', ""))
+            .unwrap();
+
+        // Parse the private key for signing
+        let private_key = RsaPrivateKey::from_pkcs8_der(&private_key_der).unwrap();
+
+        // Create a signing key and sign the original message
+        let signing_key = SigningKey::<Sha256>::new(private_key);
+        let mut rng = rand::thread_rng();
+        let signature = signing_key.sign_with_rng(&mut rng, &original_message);
+
+        // Convert the signature to bytes
+        let signature_bytes = signature.to_bytes().to_vec();
+
+        // Act - Try to verify with the tampered message
+        let result = Template::<Test>::verify_rsa_signature(
+            RuntimeOrigin::signed(account),
+            public_key_der,
+            tampered_message,
+            signature_bytes,
+        );
+
+        // Assert - Verification should fail
+        assert_noop!(result, Error::<Test>::SignatureVerificationFailed);
     });
 }

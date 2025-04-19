@@ -26,6 +26,10 @@ rsa = { workspace = true, default-features = false, features = ["sha2"] }
 sha2 = { workspace = true, default-features = false }
 spki = { workspace = true, default-features = false }
 
+[dev-dependencies]
+base64 = "0.21.0"
+rand = "0.8.5"
+
 [features]
 default = ["std"]
 runtime-benchmarks = ["frame/runtime-benchmarks"]
