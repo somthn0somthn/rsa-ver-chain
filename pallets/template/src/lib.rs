@@ -120,7 +120,7 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         /// Validates if the input string equals "hello"
-        #[pallet::call_index(1)] // Use the next available index
+        #[pallet::call_index(0)] 
         #[pallet::weight(T::WeightInfo::validate_string())]
         pub fn validate_string(
             origin: OriginFor<T>,
@@ -141,7 +141,7 @@ pub mod pallet {
             Ok(().into())
         }
 
-        #[pallet::call_index(2)] // Use the next available index
+        #[pallet::call_index(1)] 
         #[pallet::weight(T::WeightInfo::validate_string())]
         pub fn verify_rsa_signature(
             origin: OriginFor<T>,
