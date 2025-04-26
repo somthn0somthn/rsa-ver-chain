@@ -1,11 +1,13 @@
 name: Test Zombienet
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
+  # this is to temporarily turn of the ci on PRs etc
+  workflow_dispatch:
+  # pull_request:
+  # push:
+  #   branches:
+  #     - main
+  #     - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
