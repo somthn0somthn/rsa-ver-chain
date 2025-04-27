@@ -20,11 +20,14 @@ frame = { workspace = true, features = [
     "runtime",
 ], default-features = false }
 sp-std = { workspace = true, default-features = false }
+# Temporarily commenting this out to fix build issues
+frame-benchmarking = { version = "39.0.0", default-features = false }
 
 # RSA cryptography
 rsa = { workspace = true, default-features = false, features = ["sha2"] }
 sha2 = { workspace = true, default-features = false }
 spki = { workspace = true, default-features = false }
+hex = { version = "0.4", default-features = false }
 
 [dev-dependencies]
 base64 = "0.21.0"
@@ -32,7 +35,10 @@ rand = "0.8.5"
 
 [features]
 default = ["std"]
-runtime-benchmarks = ["frame/runtime-benchmarks"]
+runtime-benchmarks = [
+    "frame/runtime-benchmarks",
+    "frame/try-runtime"
+]
 std = [
     "codec/std",
     "frame/std",
@@ -41,5 +47,7 @@ std = [
     "sha2/std",
     "spki/std",
     "sp-std/std",
+    "hex/std",
 ]
+
 try-runtime = ["frame/try-runtime"]

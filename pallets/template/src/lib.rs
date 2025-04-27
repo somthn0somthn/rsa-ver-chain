@@ -142,7 +142,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(1)] 
-        #[pallet::weight(T::WeightInfo::validate_string())]
+        #[pallet::weight(T::WeightInfo::verify_rsa_signature_valid())]
         pub fn verify_rsa_signature(
             origin: OriginFor<T>,
             public_key: Vec<u8>,
