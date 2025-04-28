@@ -2,7 +2,8 @@
 name = "pallet-rsa-verification-parachain"
 description = "FRAME pallet template for defining custom runtime logic."
 version = "0.1.0"
-license = "Unlicense"
+license = "Apache-2.0"
+license-file = "LICENSE-APACHE"
 authors.workspace = true
 homepage.workspace = true
 repository.workspace = true
