@@ -4,7 +4,7 @@ A proof-of-concept implementation for on-chain JWT verification using Substrate 
 
 ## Overview
 
-Onboarding new users remains one of the thorniest challenges in Web3. Lodestar aims to improve this situation by providing web-based authentication schemes for dApps and application chains, which could be used in composition with other components to create a wallet-less blockchain experience like that seen with XION.
+Onboarding new users remains one of the thorniest challenges in Web3. Lodestar aims to improve this situation by providing web-based authentication schemes for dApps and application chains, which could be used in composition with other components to create a wallet-less blockchain experience like that seen with [XION](https://xion.burnt.com/).
 
 This RSA-ver-chain repository serves as a first-step proof of concept for the most important aspect of JWT verification on-chain: RSA signature verification. The project demonstrates how to implement and use cryptographic signature verification within a Substrate-based blockchain.
 
