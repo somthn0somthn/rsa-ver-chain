@@ -39,6 +39,8 @@ pub trait WeightInfo {
 	fn cause_error() -> Weight;
 }
 
+// TODO: Regenerate weights after benchmarking.rs is updated
+
 /// Weights for pallet_rsa_verification_parachain using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
